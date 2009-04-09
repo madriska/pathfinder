@@ -26,5 +26,22 @@ module Pathfinder
       new(width, height, obstacles)
     end
 
+    begin # PDF methods
+      require 'prawn'
+
+      def to_pdf(scale=4.0)
+        Prawn::Document.new do |pdf|
+          pdf.stroke_rectangle([0,@height*scale], @width*scale, @height*scale)
+          @obstacles.each do |segment|
+            pdf.stroke_line segment.to_a.flatten.map{|x| x*scale}
+          end
+        end
+      end
+
+    rescue LoadError # no prawn
+    end
+
+
   end
 end
+

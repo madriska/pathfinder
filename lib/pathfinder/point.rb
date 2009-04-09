@@ -5,5 +5,9 @@ module Pathfinder
       "(#{x},#{y})"
     end
 
+    def to_a
+      [x, y]
+    end
+
   end
 end
