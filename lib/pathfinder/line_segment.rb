@@ -9,6 +9,10 @@ module Pathfinder
     def to_a
       [first.to_a, second.to_a]	
     end
+
+    def intersects?(other)
+      
+    end
   end
 
 end
