@@ -62,13 +62,39 @@ module Pathfinder
           best = path
           puts "#{best.cost}: #{best.steps.inspect}"
         end
-        paths.concat(path.successors)
+        paths.concat(path.successors.map{|p| p.simplify})
       end
       best
     end
+    
+    # Condenses consecutive segments that can be traversed directly.
+    def simplify
+      # Try to make one simplification, then recursively simplify.
+      # Make sure to tip your garbage collector, he works harder than you!
+      new_path = nil
+      each_segment.each_cons(2).with_index do |(seg1, seg2), i|
+        simple_segment = LineSegment.new(seg1.first, seg2.last)
+        if @map.obstacles.none?{|o| o.intersects?(simple_segment)}
+          new_path = dup_with_steps(
+            @steps[0, i] + [seg1.first, seg2.last] + @steps[i+3..-1])
+        end
+      end
+      
+      puts "Simplify #{@steps.inspect} => #{new_path ? new_path.steps.inspect : 'X'}"
+      # TODO: why does this keep recursing?
+      # first, we curse. then, we recurse.
+      # new_path ? new_path.simplify : self
+      new_path || self
+    end
+
+    # Yields [start, end] of each segment along the path.
+    # TODO: should this yield LineSegments?
+    def each_segment
+      @steps.each_cons(2)
+    end
 
     def cost
-      @steps.each_cons(2).inject(0){|sum, (a,b)| sum + a.distance(b)}
+      each_segment.inject(0){|sum, (a,b)| sum + a.distance(b)}
     end
 
     def successors(target=goal, goal_stack=[])
@@ -93,11 +119,15 @@ module Pathfinder
       return nil if @steps.include?(next_node)
       return nil if next_node.x < 0 || next_node.y < 0 ||
                     next_node.x > @map.width || next_node.y > @map.height
-      self.class.new(@steps.first, @goal, @map,
-                     (@steps[1..-1] + [next_node]))
+      dup_with_steps(@steps + [next_node])
     end
 
     protected
+
+    # Returns a copy of self, with +steps+ instead of my own.
+    def dup_with_steps(steps)
+      self.class.new(steps.first, @goal, @map, steps[1..-1])
+    end
 
     def angle(to)
       Math.atan2(to.y - endpoint.y, to.x - endpoint.x)
