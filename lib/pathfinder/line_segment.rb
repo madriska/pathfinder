@@ -4,6 +4,26 @@ module Pathfinder
     def inspect
       "(LineSegment #{first.inspect} #{second.inspect})"
     end
+    
+    def project(p)
+      Point.new(first.x + p*(second.x - first.x),
+                first.y + p*(second.y - first.y))
+    end
+
+    # Returns a point slightly off of the "first" end of the segment.
+    def off_first
+      # TODO: be more scientific about this (fixed distance from first would be nice)
+      project(-0.1)
+    end
+
+    # Returns a point slightly off of the "second" end of the segment.
+    def off_second
+      project(1.1)
+    end
+
+    def slope
+      (second.y - first.y).to_f / (second.x - first.x)
+    end
       
     # [[x1,y1],[x2,y2]]
     def to_a

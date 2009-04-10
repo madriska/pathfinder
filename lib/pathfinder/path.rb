@@ -57,11 +57,38 @@ module Pathfinder
       paths = [self]
       until paths.empty?
         path = paths.shift
-        # TODO
+        puts "Path: #{path.inspect}"
+        best = path if !best || (path.cost < best.cost)
+        paths.concat(path.successors)
       end
       best
     end
-    
+
+    def cost
+      # TODO: include cost of nodes already traversed
+      endpoint.distance(goal)
+    end
+
+    def successors
+      return [] if complete?
+      line = next_obstacle
+      if line.nil?
+        # go directly to goal
+        [extend_path(goal)].compact
+      else
+        # TODO: fix up to check for intersections first
+        [extend_path(line.off_first), 
+         extend_path(line.off_second)].compact
+      end
+    end
+
+    # Returns a copy of self with next_node appended. Returns nil if
+    # appending next_node would be stupid (if we've already visited that).
+    def extend_path(next_node)
+      return nil if @steps.include?(next_node)
+      self.class.new(@steps.first, @goal, @map,
+                     (@steps[1..-1] + [next_node]))
+    end
 
     protected
 

@@ -46,11 +46,13 @@ module Pathfinder
         # next obstacle and its intersection
         pdf.stroke_color = 'ff0000'
         o = next_obstacle
-        pdf.stroke_line(PDF.scale(o.first), PDF.scale(o.second))
-        pdf.fill_color = '000000'
-        pdf.fill_circle_at(PDF.scale(o.intersection_pt(
-                              LineSegment.new(endpoint, goal))),
-                           :radius => 3)
+        if(o)
+          pdf.stroke_line(PDF.scale(o.first), PDF.scale(o.second))
+          pdf.fill_color = '000000'
+          pdf.fill_circle_at(PDF.scale(o.intersection_pt(
+                                LineSegment.new(endpoint, goal))),
+                             :radius => 3)
+        end
       end
 
       def draw_event_angles(pdf)
