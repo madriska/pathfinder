@@ -55,37 +55,41 @@ module Pathfinder
     def shortest_path
       best = nil
       paths = [self]
+      # TODO: prune search tree. Right now we're checking all paths.
       until paths.empty?
         path = paths.shift
-        puts "Path: #{path.inspect}"
-        best = path if !best || (path.cost < best.cost)
+        best = path if path.complete? && (best.nil? || (path.cost < best.cost))
         paths.concat(path.successors)
       end
       best
     end
 
     def cost
-      # TODO: include cost of nodes already traversed
-      endpoint.distance(goal)
+      @steps.each_cons(2).inject(0){|sum, (a,b)| a.distance(b)}
     end
 
-    def successors
+    def successors(target=goal, goal_stack=[])
       return [] if complete?
-      line = next_obstacle
-      if line.nil?
+      line = next_obstacle(target)
+      result = if line.nil?
         # go directly to goal
-        [extend_path(goal)].compact
+        [extend_path(target)].compact
       else
-        # TODO: fix up to check for intersections first
-        [extend_path(line.off_first), 
-         extend_path(line.off_second)].compact
+        # back up and try to go around the line we hit
+        # +goal_stack+ is a list of points being considered,
+        # to break infinite recursion (following the same line back/forth)
+        [line.off_first, line.off_second].reject{|x| goal_stack.include?(x)}.
+          map{|x| successors(x, goal_stack + [x])}.flatten.compact
       end
+      result
     end
 
     # Returns a copy of self with next_node appended. Returns nil if
-    # appending next_node would be stupid (if we've already visited that).
+    # appending next_node would be stupid.
     def extend_path(next_node)
       return nil if @steps.include?(next_node)
+      return nil if next_node.x < 0 || next_node.y < 0 ||
+                    next_node.x > @map.width || next_node.y > @map.height
       self.class.new(@steps.first, @goal, @map,
                      (@steps[1..-1] + [next_node]))
     end

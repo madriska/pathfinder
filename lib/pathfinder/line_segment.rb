@@ -13,12 +13,12 @@ module Pathfinder
     # Returns a point slightly off of the "first" end of the segment.
     def off_first
       # TODO: be more scientific about this (fixed distance from first would be nice)
-      project(-0.1)
+      project(-0.01)
     end
 
     # Returns a point slightly off of the "second" end of the segment.
     def off_second
-      project(1.1)
+      project(1.01)
     end
 
     def slope
