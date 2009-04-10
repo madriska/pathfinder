@@ -4,7 +4,7 @@ require 'pathfinder'
 
 include Pathfinder
 map = Map.generate_random
-path = Path.new([0,0], [100,100], map)
+path = Path.new(Point.new(0,0), Point.new(100,100), map)
 
 pdf = map.to_pdf
 path.draw(pdf)

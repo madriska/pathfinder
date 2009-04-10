@@ -36,11 +36,19 @@ module Pathfinder
       @map.obstacles.sort_by{|o| angle(o.first)}
     end
 
+    # All obstacles in path of endpoint->target.
+    def obstacles(target = goal)
+      segment = LineSegment.new(endpoint, target)
+      @map.obstacles.select{|o| o.intersects?(segment)}
+    end
+
     # Next obstacle, if any, along the path endpoint->target.
+    # TODO: this algorithm can be improved
     def next_obstacle(target = goal)
       segment = LineSegment.new(endpoint, target)
-      @map.obstacles.select{|o| o.intersects?(segment)}.sort_by do |o|
-        # TODO
+      obstacles(target).sort_by do |o|
+        intersection = o.intersection_pt(segment)
+        endpoint.distance(intersection)
       end.first
     end
 
