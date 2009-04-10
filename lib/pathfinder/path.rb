@@ -48,7 +48,7 @@ module Pathfinder
       segment = LineSegment.new(endpoint, target)
       obstacles(target).sort_by do |o|
         intersection = o.intersection_pt(segment)
-        endpoint.distance(intersection)
+        (intersection == true) ? 0 : endpoint.distance(intersection)
       end.first
     end
 
@@ -58,14 +58,17 @@ module Pathfinder
       # TODO: prune search tree. Right now we're checking all paths.
       until paths.empty?
         path = paths.shift
-        best = path if path.complete? && (best.nil? || (path.cost < best.cost))
+        if path.complete? && (best.nil? || (path.cost < best.cost))
+          best = path
+          puts "#{best.cost}: #{best.steps.inspect}"
+        end
         paths.concat(path.successors)
       end
       best
     end
 
     def cost
-      @steps.each_cons(2).inject(0){|sum, (a,b)| a.distance(b)}
+      @steps.each_cons(2).inject(0){|sum, (a,b)| sum + a.distance(b)}
     end
 
     def successors(target=goal, goal_stack=[])
