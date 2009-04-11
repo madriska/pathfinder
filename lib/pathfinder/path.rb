@@ -48,13 +48,14 @@ module Pathfinder
  
       seen = {} # to break cycles
 
-      # TODO: prune search tree. Right now we're checking all paths.
+      # TODO: prune search tree. Right now we're checking lots of paths that
+      # aren't going to pan out.
       while path = paths.pop
-        print "#{paths.size} path#{"s" unless paths.size == 1} left#{' '*80}\r"
+        # print "#{paths.size} path#{"s" unless paths.size == 1} left#{' '*80}\r"
         seen[path.steps] = true
         best = path if path.complete? && (best.nil? || (path.cost < best.cost))
 
-        # Push successors into path list
+        # Push feasible successors into path list
         path.successors.each do |p| 
           unless (best && (p.cost > best.cost))
             paths.push(p, p.cost) unless seen[p.steps]
@@ -92,6 +93,8 @@ module Pathfinder
       end
     end
 
+    protected
+
     # Returns a copy of self with next_node appended. Returns nil if
     # appending next_node would be stupid.
     def extend_path(next_node)
@@ -109,19 +112,9 @@ module Pathfinder
       dup_with_steps(@steps + [next_node])
     end
 
-    protected
-
     # Returns a copy of self, with +steps+ instead of my own.
     def dup_with_steps(steps)
       self.class.new(steps.first, @goal, @map, steps[1..-1])
-    end
-
-    def angle(to)
-      Math.atan2(to.y - endpoint.y, to.x - endpoint.x)
-    end
-
-    def radius(to)
-      Math.sqrt((to.y - endpoint.y)**2 + (to.x - endpoint.x)**2)
     end
 
   end
