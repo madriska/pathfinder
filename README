@@ -1,0 +1,8 @@
+== Pathfinder
+
+Pathfinder is a Ruby library for finding shortest paths through 2-D maps in
+space. Obstacles are represented by line segments (which can be composed into
+more complicated structures, such as polygons).
+
+See pdf_test.rb for a demo.
+
