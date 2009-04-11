@@ -1,3 +1,5 @@
+require 'priority_set'
+
 module Pathfinder
   # Represents a start and end point and a (potentially partial) path
   # from the start point toward the end point.
@@ -8,6 +10,10 @@ module Pathfinder
       @steps = [start] + steps
       @map   = map
       @goal  = goal
+    end
+
+    def inspect
+      "(Path goal=#{goal.inspect} steps=(#{steps.map{|s| s.inspect}.join(' ')}))"
     end
 
     # Furthest point along this path.
@@ -54,39 +60,27 @@ module Pathfinder
 
     def shortest_path
       best = nil
-      paths = [self]
+      paths = PrioritySet.new
+      paths.push(self, cost)
+ 
+      seen = {} # to break cycles
+
       # TODO: prune search tree. Right now we're checking all paths.
-      until paths.empty?
-        path = paths.shift
-        if path.complete? && (best.nil? || (path.cost < best.cost))
-          best = path
-          puts "#{best.cost}: #{best.steps.inspect}"
+      while path = paths.pop
+        seen[path.steps] = true
+        best = path if path.complete? && (best.nil? || (path.cost < best.cost))
+
+        # Push successors into path list
+        path.successors.each do |p| 
+          unless (best && (p.cost > best.cost))
+            paths.push(p, p.cost) unless seen[p.steps]
+          end
         end
-        paths.concat(path.successors.map{|p| p.simplify})
+
       end
       best
     end
     
-    # Condenses consecutive segments that can be traversed directly.
-    def simplify
-      # Try to make one simplification, then recursively simplify.
-      # Make sure to tip your garbage collector, he works harder than you!
-      new_path = nil
-      each_segment.each_cons(2).with_index do |(seg1, seg2), i|
-        simple_segment = LineSegment.new(seg1.first, seg2.last)
-        if @map.obstacles.none?{|o| o.intersects?(simple_segment)}
-          new_path = dup_with_steps(
-            @steps[0, i] + [seg1.first, seg2.last] + @steps[i+3..-1])
-        end
-      end
-      
-      puts "Simplify #{@steps.inspect} => #{new_path ? new_path.steps.inspect : 'X'}"
-      # TODO: why does this keep recursing?
-      # first, we curse. then, we recurse.
-      # new_path ? new_path.simplify : self
-      new_path || self
-    end
-
     # Yields [start, end] of each segment along the path.
     # TODO: should this yield LineSegments?
     def each_segment
@@ -97,10 +91,12 @@ module Pathfinder
       each_segment.inject(0){|sum, (a,b)| sum + a.distance(b)}
     end
 
+    # Returns an array of augmented paths that advance toward +target+.
+    # Ignores solutions that would pass through +goal_stack+.
     def successors(target=goal, goal_stack=[])
       return [] if complete?
       line = next_obstacle(target)
-      result = if line.nil?
+      if line.nil?
         # go directly to goal
         [extend_path(target)].compact
       else
@@ -110,7 +106,6 @@ module Pathfinder
         [line.off_first, line.off_second].reject{|x| goal_stack.include?(x)}.
           map{|x| successors(x, goal_stack + [x])}.flatten.compact
       end
-      result
     end
 
     # Returns a copy of self with next_node appended. Returns nil if
@@ -119,6 +114,14 @@ module Pathfinder
       return nil if @steps.include?(next_node)
       return nil if next_node.x < 0 || next_node.y < 0 ||
                     next_node.x > @map.width || next_node.y > @map.height
+
+      # Coalesce with last segment if that route doesn't intersect any obstacles
+      if @steps.size > 1
+        simple_segment = LineSegment.new(@steps[-2], next_node)
+        if @map.obstacles.none?{|o| o.intersects?(simple_segment)}
+          return dup_with_steps(@steps[0..-2] + [next_node])
+        end
+      end
       dup_with_steps(@steps + [next_node])
     end
 

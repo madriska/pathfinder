@@ -11,8 +11,7 @@ module Pathfinder
       options = {
         :width => 100, 
         :height => 100,
-        :num_obstacles => 5,
-        :integral => true
+        :num_obstacles => 20
       }.merge(options)
 
       width, height = options[:width], options[:height]
@@ -20,8 +19,16 @@ module Pathfinder
       obstacles = (1..options[:num_obstacles]).map do
         random = options[:integral] ? lambda{|x| rand(x) } : 
                                       lambda{|x| rand * x }
-        LineSegment.new(Point.new(random[width], random[height]),
-                        Point.new(random[width], random[height]))
+        x, y = random[width], random[height]
+
+        # x2 = random in x-limit..x+limit
+        limit = width / 4
+        x2 = x + random[2*limit] - limit
+        y2 = y + random[2*limit] - limit
+
+        LineSegment.new(Point.new(x, y), 
+                        Point.new([0, [x2, width].min].max, 
+                                  [0, [y2, height].min].max))
       end
 
       new(width, height, obstacles)
