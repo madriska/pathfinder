@@ -11,6 +11,7 @@ module Pathfinder
       options = {
         :width => 100, 
         :height => 100,
+        :integral => true,
         :num_obstacles => 20
       }.merge(options)
 

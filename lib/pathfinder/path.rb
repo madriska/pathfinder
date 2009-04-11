@@ -25,23 +25,6 @@ module Pathfinder
       endpoint == goal
     end
 
-    def event_points
-      @map.obstacles.map{|o| [o.first, o.second]}.flatten
-    end
-
-    # Returns an array of angles (in radians) from the current endpoint
-    # at which obstacles start/stop.
-    # TODO: do visibility analysis on this first
-    def event_angles
-      event_points.map do |pt|
-        Math.atan2(pt.y - endpoint.y, pt.x - endpoint.x)
-      end.sort_by{|a| (a - angle(goal)).abs}
-    end
-
-    def segment_angles
-      @map.obstacles.sort_by{|o| angle(o.first)}
-    end
-
     # All obstacles in path of endpoint->target.
     def obstacles(target = goal)
       segment = LineSegment.new(endpoint, target)
@@ -67,6 +50,7 @@ module Pathfinder
 
       # TODO: prune search tree. Right now we're checking all paths.
       while path = paths.pop
+        print "#{paths.size} path#{"s" unless paths.size == 1} left#{' '*80}\r"
         seen[path.steps] = true
         best = path if path.complete? && (best.nil? || (path.cost < best.cost))
 
