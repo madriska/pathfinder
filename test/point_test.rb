@@ -16,6 +16,10 @@ class PointTest < Test::Unit::TestCase
       assert_equal [1,2], @point.to_a
     end
 
+    should "output in ordered-pair notation upon #inspect" do
+      assert_equal "(1,2)", @point.inspect
+    end
+
     should "have distance zero from itself" do
       assert_equal 0.0, @point.distance(@point)
     end
