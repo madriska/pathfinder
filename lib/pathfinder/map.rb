@@ -16,7 +16,7 @@ module Pathfinder
         :width => 100, 
         :height => 100,
         :integral => true,
-        :num_obstacles => 20
+        :num_obstacles => 1
       }.merge(options)
 
       width, height = options[:width], options[:height]
@@ -24,19 +24,28 @@ module Pathfinder
       obstacles = (1..options[:num_obstacles]).map do
         random = options[:integral] ? lambda{|x| rand(x) } : 
                                       lambda{|x| rand * x }
-        x, y = random[width], random[height]
 
-        # x2 = random in x-limit..x+limit
-        limit = width / 4
-        x2 = x + random[2*limit] - limit
-        y2 = y + random[2*limit] - limit
-
-        LineSegment.new(Point.new(x, y), 
-                        Point.new([0, [x2, width].min].max, 
-                                  [0, [y2, height].min].max))
-      end
+        corner = Point.new(random[width], random[height])
+        w = random[width - corner.x]
+        h = random[height - corner.y]
+        
+        rectangle(corner, w, h)
+      end.flatten
 
       new(width, height, obstacles)
+    end
+
+    protected
+
+    # Returns an array of four LineSegments corresponding to a rectangle 
+    # anchored at +corner+ and with dimensions (width, height).
+    def self.rectangle(corner, width, height)
+      c0 = corner
+      c1 = Point.new(corner.x, corner.y + height)
+      c2 = Point.new(corner.x + width, corner.y)
+      c3 = Point.new(corner.x + width, corner.y + height)
+      [LineSegment.new(c0, c1), LineSegment.new(c0, c2),
+       LineSegment.new(c1, c3), LineSegment.new(c2, c3)]
     end
 
 
