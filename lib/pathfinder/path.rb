@@ -84,15 +84,15 @@ module Pathfinder
     # Ignores solutions that would pass through +goal_stack+.
     def successors(target=goal, goal_stack=[])
       return [] if complete?
-      line = next_obstacle(target)
-      if line.nil?
+      obstacle = next_obstacle(target)
+      if obstacle.nil?
         # go directly to goal
         [extend_path(target)].compact
       else
         # back up and try to go around the line we hit
         # +goal_stack+ is a list of points being considered,
         # to break infinite recursion (following the same line back/forth)
-        [line.off_first, line.off_second].reject{|x| goal_stack.include?(x)}.
+        obstacle.ways_around.reject{|x| goal_stack.include?(x)}.
           map{|x| successors(x, goal_stack + [x])}.flatten.compact
       end
     end

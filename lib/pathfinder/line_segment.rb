@@ -8,6 +8,11 @@ module Pathfinder
     def inspect
       "(LineSegment #{first.inspect} #{second.inspect})"
     end
+
+    # [[x1,y1],[x2,y2]]
+    def to_a
+      [first.to_a, second.to_a]	
+    end
     
     # Linear combination of the two points. project(0) == first; 
     # project(1) == second.
@@ -29,13 +34,17 @@ module Pathfinder
       project(1.0 + (Epsilon / length))
     end
 
+    # Points by which we might navigate around this LineSegment.
+    def ways_around
+      [off_first, off_second]
+    end
+
     def slope
       (second.y - first.y).to_f / (second.x - first.x)
     end
       
-    # [[x1,y1],[x2,y2]]
-    def to_a
-      [first.to_a, second.to_a]	
+    def length
+      first.distance(second)
     end
 
     # Translated and adapted from: 
