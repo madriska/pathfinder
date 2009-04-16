@@ -9,20 +9,24 @@ module Pathfinder
       "(LineSegment #{first.inspect} #{second.inspect})"
     end
     
+    # Linear combination of the two points. project(0) == first; 
+    # project(1) == second.
     def project(p)
       Point.new(first.x + p*(second.x - first.x),
                 first.y + p*(second.y - first.y))
     end
 
+    # Approximately, how close off_first and off_second are to first and second
+    Epsilon = 0.1 
+
     # Returns a point slightly off of the "first" end of the segment.
     def off_first
-      # TODO: be more scientific about this (fixed distance from first would be nice)
-      project(-0.01)
+      project(0.0 - (Epsilon / length))
     end
 
     # Returns a point slightly off of the "second" end of the segment.
     def off_second
-      project(1.01)
+      project(1.0 + (Epsilon / length))
     end
 
     def slope
