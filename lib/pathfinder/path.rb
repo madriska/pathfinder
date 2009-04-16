@@ -97,6 +97,7 @@ module Pathfinder
       end
     end
 
+
     protected
 
     # Returns a copy of self with next_node appended. Returns nil if
@@ -106,14 +107,23 @@ module Pathfinder
       return nil if next_node.x < 0 || next_node.y < 0 ||
                     next_node.x > @map.width || next_node.y > @map.height
 
-      # Coalesce with last segment if that route doesn't intersect any obstacles
-      if @steps.size > 1
-        simple_segment = LineSegment.new(@steps[-2], next_node)
-        if @map.obstacles.none?{|o| o.intersects?(simple_segment)}
-          return dup_with_steps(@steps[0..-2] + [next_node])
-        end
+      dup_with_steps(@steps + [next_node]).coalesce_end
+    end
+
+    # Returns a new version of self with the last segment simplified, if 
+    # possible. If the path is ABCDE and BE is clear, the path returned
+    # will be ABE. This method may return self if appropriate; it does not
+    # dup unless changes are made.
+    def coalesce_end
+      return self unless @steps.size > 2
+
+      # Create a path that bypasses the second-to-last node
+      simple_segment = LineSegment.new(@steps[-3], @steps[-1])
+      if @map.obstacles.none?{|o| o.intersects?(simple_segment)}
+        # Recurse -- see if the simplified path can be further simplified
+        return dup_with_steps(@steps[0..-3] + [@steps[-1]]).coalesce_end
       end
-      dup_with_steps(@steps + [next_node])
+      self
     end
 
     # Returns a copy of self, with +steps+ instead of my own.
