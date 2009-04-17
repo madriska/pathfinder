@@ -39,11 +39,7 @@ module Pathfinder
     def first_intersecting_segment(segment)
       segments.sort_by do |o|
         intersection = o.intersection_pt(segment)
-        case intersection
-        when true then 0
-        when false then 1.0/0
-        else segment.first.distance(intersection)
-        end
+        intersection ? segment.first.distance(intersection) : Infinity
       end.first
     end
 

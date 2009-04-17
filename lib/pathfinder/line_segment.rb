@@ -47,11 +47,17 @@ module Pathfinder
       first.distance(second)
     end
 
+    def point?
+      first == second
+    end
+
     # Translated and adapted from: 
     # http://local.wasp.uwa.edu.au/~pbourke/geometry/lineline2d/example.cpp
     # Returns true for coincident line segments; false for nonintersecting
     # segments; and the point of intersection for intersecting segments.
     def intersection_pt(other) 
+      # TODO: Special-case where either is a point
+
       denom = ((other.second.y - other.first.y).to_f*(second.x - first.x)) -
               ((other.second.x - other.first.x).to_f*(second.y - first.y))
       numea = ((other.second.x - other.first.x).to_f*(first.y - other.first.y)) -
@@ -60,11 +66,11 @@ module Pathfinder
               ((second.y - first.y).to_f*(first.x - other.first.x))
 
       if denom.zero?
-        # TODO: special-case these?
         if numea.zero? && numeb.zero?
-          return true # coincident
+          # Coincident; return closest endpoint to other.first
+          return [first, second].sort_by{|p| p.distance(other.first)}.first
         else
-          return false # parallel
+          return nil # parallel
         end
       end
       
@@ -72,8 +78,7 @@ module Pathfinder
       ub = numeb / denom
 
       if (0.0..1.0).include?(ua) && (0.0..1.0).include?(ub)
-        Point.new(first.x + ua*(second.x - first.x),
-                  first.y + ua*(second.y - first.y))
+        project(ua)
       else
         false
       end
