@@ -86,9 +86,10 @@ module Pathfinder
     def successors(target=goal, goal_stack=[])
       return [] if complete?
 
+      ray = LineSegment.new(endpoint, target)
       if obstacle = next_obstacle(target)
         # back up and try to go around the obstacle we hit
-        obstacle.ways_around.reject{|x| goal_stack.include?(x)}.
+        obstacle.ways_around(ray).reject{|x| goal_stack.include?(x)}.
           map{|x| successors(x, goal_stack + [x])}.flatten.compact
       else
         # go directly to goal

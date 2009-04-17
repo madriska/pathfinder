@@ -18,6 +18,19 @@ module Pathfinder
         (p.is_a?(Array) ? p : p.to_a).map{|x| x*Scale}
       end
     end
+    
+    class LineSegment
+      def draw(pdf)
+        pdf.stroke_line to_a.map{|pt| PDF.scale(pt)}
+      end
+    end
+
+    class Polygon
+      def draw(pdf)
+        pdf.fill_color = '666666'
+        pdf.fill_polygon *@vertices.map{|v| PDF.scale(v)}
+      end
+    end
 
     class Map
       def to_pdf
@@ -29,8 +42,8 @@ module Pathfinder
                             :margin    => margin) do |pdf|
           pdf.stroke_rectangle(PDF.scale([0, @height]), 
                                @width*PDF::Scale, @height*PDF::Scale)
-          @obstacles.each do |segment|
-            pdf.stroke_line segment.map{|pt| PDF.scale(pt)}
+          @obstacles.each do |obstacle|
+            obstacle.draw(pdf)
           end
         end
       end
@@ -48,10 +61,8 @@ module Pathfinder
         pdf.stroke_line(PDF.scale(endpoint), PDF.scale(goal))
         
         # next obstacle and its intersection
-        pdf.stroke_color = 'ff0000'
         o = next_obstacle
         if(o)
-          pdf.stroke_line(PDF.scale(o.first), PDF.scale(o.second))
           pdf.fill_color = '000000'
           pdf.fill_circle_at(PDF.scale(o.intersection_pt(
                                 LineSegment.new(endpoint, goal))),
