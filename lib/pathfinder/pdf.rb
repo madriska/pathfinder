@@ -61,8 +61,7 @@ module Pathfinder
         pdf.stroke_line(PDF.scale(endpoint), PDF.scale(goal))
         
         # next obstacle and its intersection
-        o = next_obstacle
-        if(o)
+        if(o = next_obstacle)
           pdf.fill_color = '000000'
           pdf.fill_circle_at(PDF.scale(o.intersection_pt(
                                 LineSegment.new(endpoint, goal))),

@@ -44,6 +44,7 @@ module Pathfinder
         (intersection == true) ? 0 : endpoint.distance(intersection)
       end.first
     end
+    memoize :next_obstacle
 
     def shortest_path
       best = nil

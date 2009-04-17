@@ -2,6 +2,7 @@
 # This is copyrighted free software. Please see the LICENSE and COPYING files
 # for details.
 
+require 'memoize'
 module Pathfinder
   
   class Polygon
@@ -27,7 +28,9 @@ module Pathfinder
       @vertices.each_cons(2).map{|(a,b)| LineSegment.new(a, b)} +
         [LineSegment.new(@vertices.last, @vertices.first)]
     end
-    # TODO: memoize lots of things
+    memoize :segments
+
+    Infinity = 1.0/0
 
     # Returns the first segment intersecting a segment going in segment
     # order (from +segment.first+ to +segment.second+ -- order matters).
