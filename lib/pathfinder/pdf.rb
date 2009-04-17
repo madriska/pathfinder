@@ -41,7 +41,7 @@ module Pathfinder
       # Draw self onto +pdf+.
       def draw(pdf)
         pdf.stroke_color = '00ff00'
-        steps.each_cons(2) do |first, second|
+        each_segment do |first, second|
           pdf.stroke_line(PDF.scale(first), PDF.scale(second))
         end
         pdf.stroke_color = '999999'

@@ -71,9 +71,8 @@ module Pathfinder
     end
     
     # Yields [start, end] of each segment along the path.
-    # TODO: should this yield LineSegments?
-    def each_segment
-      @steps.each_cons(2)
+    def each_segment(&block)
+      @steps.each_cons(2, &block)
     end
 
     def cost
