@@ -6,12 +6,16 @@ require 'priority_set'
 
 module Pathfinder
   # Represents a start and end point and a (potentially partial) path
-  # from the start point toward the end point.
+  # connecting the start point to the end point. The path is composed of a 
+  # series of +steps+, all of which are unimpeded except for 
+  # +steps[gap_position]+. The "gap" is narrowed from either end until the
+  # path is unimpeded.
   class Path
     
-    attr_reader :steps, :map, :goal
-    def initialize(start, goal, map, steps=[])
-      @steps = [start] + steps
+    attr_reader :steps, :map, :goal, :gap_position
+    def initialize(start, goal, map, steps=nil, gap_position=nil)
+      @steps = steps || [start, goal]
+      @gap_position = gap_position || 1
       @map   = map
       @goal  = goal
     end
@@ -20,18 +24,17 @@ module Pathfinder
       "(Path goal=#{goal.inspect} steps=(#{steps.map{|s| s.inspect}.join(' ')}))"
     end
 
-    # Furthest point along this path.
-    def endpoint
-      @steps.last
+    def gap
+      LineSegment.new(*@steps[@gap_position - 1, 2])
     end
 
     def complete?
-      endpoint == goal
+      obstacles(*gap.to_a).empty?
     end
 
     # All obstacles in path of endpoint->target.
-    def obstacles(target = goal)
-      segment = LineSegment.new(endpoint, target)
+    def obstacles(origin, target)
+      segment = LineSegment.new(origin, target)
       @map.obstacles.select{|o| o.intersects?(segment)}
     end
 
@@ -56,7 +59,6 @@ module Pathfinder
       # TODO: prune search tree. Right now we're checking lots of paths that
       # aren't going to pan out.
       while path = paths.pop
-        # print "#{paths.size} path#{"s" unless paths.size == 1} left#{' '*80}\r"
         seen[path.steps] = true
         best = path if path.complete? && (best.nil? || (path.cost < best.cost))
 
