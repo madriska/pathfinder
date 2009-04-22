@@ -38,6 +38,12 @@ module Pathfinder
       @map.obstacles.select{|o| o.intersects?(segment)}
     end
 
+    # TODO: to improve situations where target is inaccessible,
+    # at each step randomly choose which end of the gap to narrow.
+    # This should allow us to find out more quickly if the goal
+    # is inaccessible. And generally, problems may be more tractable
+    # from one end than another.
+
     # Next obstacle, if any, along the path endpoint->target.
     # TODO: this algorithm can be improved
     def next_obstacle(target = goal)
