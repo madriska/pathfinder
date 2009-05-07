@@ -7,29 +7,35 @@ require 'priority_set'
 module Pathfinder
   # Represents a start and end point and a (potentially partial) path
   # connecting the start point to the end point. The path is composed of a 
-  # series of +steps+, all of which are unimpeded except for 
-  # +steps[gap_position]+. The "gap" is narrowed from either end until the
-  # path is unimpeded.
+  # series of steps, stored in two parts separated by a "gap": a partial
+  # unimpeded path from the beginning, and a partial unimpeded path to the end.
+  # The gap is closed
   class Path
     
-    attr_reader :steps, :map, :goal, :gap_position
-    def initialize(start, goal, map, steps=nil, gap_position=nil)
-      @steps = steps || [start, goal]
-      @gap_position = gap_position || 1
+    attr_reader :steps, :map
+    def initialize(start, goal, map, steps=nil)
+      @steps = steps || [[start], [goal]]
       @map   = map
-      @goal  = goal
+    end
+    
+    def initial_steps
+      steps.first
     end
 
-    def inspect
-      "(Path goal=#{goal.inspect} steps=(#{steps.map{|s| s.inspect}.join(' ')}))"
+    def final_steps
+      steps.last
+    end
+
+    def goal
+      final_steps.last
     end
 
     def gap
-      LineSegment.new(*@steps[@gap_position - 1, 2])
+      LineSegment.new(initial_steps.last, final_steps.first)
     end
 
     def complete?
-      obstacles(*gap.to_a).empty?
+      initial_steps.last == final_steps.first # gap empty
     end
 
     # All obstacles in path of endpoint->target.
@@ -46,11 +52,12 @@ module Pathfinder
 
     # Next obstacle, if any, along the path endpoint->target.
     # TODO: this algorithm can be improved
-    def next_obstacle(target = goal)
-      segment = LineSegment.new(endpoint, target)
-      obstacles(target).sort_by do |o|
+    def next_obstacle(origin, target)
+      segment = LineSegment.new(origin, target)
+      #puts "Obstacles(#{origin.inspect}, #{target.inspect}) = #{obstacles(origin, target).inspect}"
+      obstacles(origin, target).sort_by do |o|
         intersection = o.intersection_pt(segment)
-        (intersection == true) ? 0 : endpoint.distance(intersection)
+        (intersection == true) ? 0 : origin.distance(intersection)
       end.first
     end
     memoize :next_obstacle
@@ -66,7 +73,11 @@ module Pathfinder
       # aren't going to pan out.
       while path = paths.pop
         seen[path.steps] = true
-        best = path if path.complete? && (best.nil? || (path.cost < best.cost))
+        if path.complete? && (best.nil? || (path.cost < best.cost))
+          puts "New best: #{path.inspect}"
+          best = path
+          return best
+        end
 
         # Push feasible successors into path list
         path.successors.each do |p| 
@@ -81,7 +92,8 @@ module Pathfinder
     
     # Yields [start, end] of each segment along the path.
     def each_segment(&block)
-      @steps.each_cons(2, &block)
+      initial_steps.each_cons(2, &block)
+      final_steps.each_cons(2, &block)
     end
 
     def cost
@@ -92,51 +104,58 @@ module Pathfinder
     # Ignores solutions that would pass through +goal_stack+.
     # +goal_stack+ is a list of points already being considered on the current
     # solution, to break infinite recursion (following the same line back/forth)
-    def successors(target=goal, goal_stack=[])
-      return [] if complete?
+    def successors(origin=nil, destination=nil, goal_stack=[])
+      origin ||= gap.first
+      destination ||= gap.second
+      return [] if complete? || origin == destination
 
-      ray = LineSegment.new(endpoint, target)
-      if obstacle = next_obstacle(target)
+      # Randomly decide which endpoint of the gap to work on.
+      # This helps us work around obstacles that are easier to work from one
+      # side than from the other; in the extreme case, consider an obstacle 
+      # very close to the goal, blocking it completely. With high probability,
+      # we will figure this out before wasting a bunch of time figuring out
+      # how to get close to the goal.
+      swap = (rand > 0.5)
+      #origin, destination = destination, origin if swap
+
+      #puts "Origin, destination = #{origin.inspect}, #{destination.inspect}"
+      ray = LineSegment.new(origin, destination)
+      if obstacle = next_obstacle(origin, destination)
         # back up and try to go around the obstacle we hit
+        #puts "pushing onto stack"
         obstacle.ways_around(ray).reject{|x| goal_stack.include?(x)}.
-          map{|x| successors(x, goal_stack + [x])}.flatten.compact
+          map{|x| successors(origin, x, goal_stack + [x])}.flatten.compact
       else
-        # go directly to goal
-        [extend_path(target)].compact
+        # narrow the gap
+        # swap back if needed
+        #origin, destination = destination, origin if swap
+        if origin == initial_steps.last
+          [dup_with_steps([initial_steps + [destination],
+                          final_steps])]
+        else # origin == final_steps.first
+          [dup_with_steps([initial_steps, 
+                          [destination] + final_steps])]
+        end
       end
     end
 
     protected
 
-    # Returns a copy of self with next_node appended. Returns nil if
-    # appending next_node would be stupid.
-    def extend_path(next_node)
-      return nil if @steps.include?(next_node)
-      return nil if next_node.x < 0 || next_node.y < 0 ||
-                    next_node.x > @map.width || next_node.y > @map.height
-
-      dup_with_steps(@steps + [next_node]).coalesce_end
-    end
-
-    # Returns a new version of self with the last segment simplified, if 
-    # possible. If the path is ABCDE and BE is clear, the path returned
-    # will be ABE. This method may return self if appropriate; it does not
-    # dup unless changes are made.
-    def coalesce_end
-      return self unless @steps.size > 2
-
-      # Create a path that bypasses the second-to-last node
-      simple_segment = LineSegment.new(@steps[-3], @steps[-1])
+    # Conses +new_step+ onto +steps+, simplifying the end of the path as needed.
+    def coalesce(steps, new_step)
+      return [*steps, new_step] #if steps.length < 2
+      simple_segment = LineSegment.new(steps[-2], new_step)
       if @map.obstacles.none?{|o| o.intersects?(simple_segment)}
         # Recurse -- see if the simplified path can be further simplified
-        return dup_with_steps(@steps[0..-3] + [@steps[-1]]).coalesce_end
+        coalesce(steps[0..-2], new_step)
+      else
+        [*steps, new_step]
       end
-      self
     end
 
     # Returns a copy of self, with +steps+ instead of my own.
     def dup_with_steps(steps)
-      self.class.new(steps.first, @goal, @map, steps[1..-1])
+      self.class.new(nil, nil, @map, steps)
     end
 
   end

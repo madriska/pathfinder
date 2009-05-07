@@ -57,24 +57,6 @@ module Pathfinder
         each_segment do |first, second|
           pdf.stroke_line(PDF.scale(first), PDF.scale(second))
         end
-        pdf.stroke_color = '999999'
-        pdf.stroke_line(PDF.scale(endpoint), PDF.scale(goal))
-        
-        # next obstacle and its intersection
-        if(o = next_obstacle)
-          pdf.fill_color = '000000'
-          pdf.fill_circle_at(PDF.scale(o.intersection_pt(
-                                LineSegment.new(endpoint, goal))),
-                             :radius => 3)
-        end
-      end
-
-      def draw_event_angles(pdf)
-        event_points.each do |pt|
-          pdf.stroke_color = 'ff0000'
-          pdf.stroke_line(PDF.scale(endpoint), PDF.scale(pt))
-        end
-        pdf
       end
 
     end
