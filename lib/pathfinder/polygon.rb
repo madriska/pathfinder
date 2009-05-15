@@ -13,11 +13,17 @@ module Pathfinder
 
       sides = rand(options[:max_sides] - 2) + 3
       center = Point.random(options[:width], options[:height])
-      new(1.upto(sides).map do
-        p = center.random_divergence(options[:divergence], 
-                                     options[:divergence]).
-                   clamp(options[:width], options[:height])
-      end)
+
+      points = 1.upto(sides).map do
+        center.random_divergence(options[:divergence], 
+                                 options[:divergence]).
+               clamp(options[:width], options[:height])
+      end
+      
+      # Turn into simple polygon: sort vertices by their angle from centroid
+      centroid = Point.new(points.inject(0){|s,p| s + p.x} / points.size,
+                           points.inject(0){|s,p| s + p.y} / points.size)
+      new(points.sort_by{|p| centroid.angle_to(p)})
     end
 
     def initialize(vertices)
@@ -47,8 +53,13 @@ module Pathfinder
       first_intersecting_segment(line_segment).intersection_pt(line_segment)
     end
 
-    def intersects?(line_segment)
-      segments.any?{|s| s.intersects?(line_segment)}
+    def intersects?(x)
+      case x
+      when LineSegment
+        segments.any?{|s| s.intersects?(x)}
+      when Polygon
+        segments.any?{|s| x.segments.any?{|t| s.intersects?(t)}}
+      end
     end
 
     # On a ray going from +line_segment.first+ towards +line_segment.second+,

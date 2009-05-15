@@ -28,6 +28,11 @@ module Pathfinder
       self.class.new(x + dx, y + dy)
     end
 
+    # Returns the angle of the line segment to +other+.
+    def angle_to(other)
+      Math.atan2(other.y - y, other.x - x)
+    end
+
     # Clamps x to [0,w] and y to [0,h]
     def clamp(w, h)
       x2 = [[x, 0].max, w].min
