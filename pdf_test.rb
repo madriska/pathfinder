@@ -7,8 +7,13 @@ require 'rubygems'
 require 'pathfinder'
 
 include Pathfinder
-map = Map.generate_random(:num_obstacles => 15, :integral => false)
-path = Path.new(Point.new(0,0), Point.new(100,100), map)
+map = Map.generate_random(:num_obstacles => 20, :integral => false)
+
+start = Point.new(rand*100, rand*100)
+finish = Point.new(rand*100, rand*100)
+path = Path.new(start, finish, map)
+
+#path = Path.new(Point.new(0,0), Point.new(100,100), map)
 
 pdf = map.to_pdf
 path = path.shortest_path
