@@ -21,16 +21,12 @@ module Pathfinder
 
       width, height = options[:width], options[:height]
 
-      obstacles = (1..options[:num_obstacles]).map do
-        #random = options[:integral] ? lambda{|x| rand(x) } : 
-        #                              lambda{|x| rand * x }
-
-        #corner = Point.new(random[width], random[height])
-        #w = random[width - corner.x]
-        #h = random[height - corner.y]
-        
-        #rectangle(corner, w, h)
-        Polygon.generate_random(:width => width, :height => height)
+      obstacles = (1..options[:num_obstacles]).inject([]) do |polys, _|
+        p = Polygon.generate_random(:width => width, :height => height)
+        while polys.any?{|q| p.intersects?(q)}
+          p = Polygon.generate_random(:width => width, :height => height)
+        end
+        polys + [p]
       end
 
       new(width, height, obstacles)
