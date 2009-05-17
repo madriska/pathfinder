@@ -56,6 +56,14 @@ module Pathfinder
     # Returns true for coincident line segments; false for nonintersecting
     # segments; and the point of intersection for intersecting segments.
     def intersection_pt(other) 
+      if other.point? # Below tests fail if other.point?
+        if point?
+          return (other.first == self.first) ? first : nil
+        else
+          return other.intersection_pt(self)
+        end
+      end
+
       denom = ((other.second.y - other.first.y).to_f*(second.x - first.x)) -
               ((other.second.x - other.first.x).to_f*(second.y - first.y))
       numea = ((other.second.x - other.first.x).to_f*(first.y - other.first.y)) -
@@ -66,7 +74,6 @@ module Pathfinder
       if denom.zero?
         if numea.zero? && numeb.zero?
           # Coincident; return closest endpoint to other.first
-          # TODO: This causes problems when other is a point.
           return [first, second].sort_by{|p| p.distance(other.first)}.first
         else
           return nil # parallel
