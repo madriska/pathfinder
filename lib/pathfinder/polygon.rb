@@ -8,6 +8,15 @@ module Pathfinder
   
   class Polygon
     
+    def self.disc(center, radius, segments)
+      segment_angle = 2 * Math::PI / segments
+      vertices = (0...segments).map do |i|
+        angle = segment_angle * i
+        center + Point.new(radius * Math.cos(angle), radius * Math.sin(angle))
+      end
+      new(vertices)
+    end
+
     def self.generate_random(options)
       options = {:max_sides => 6, :divergence => options[:width] / 4.0}.
         merge(options)

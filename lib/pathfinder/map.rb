@@ -26,6 +26,10 @@ module Pathfinder
         while polys.any?{|q| p.intersects?(q)}
           p = Polygon.generate_random(:width => width, :height => height)
         end
+#        p = Polygon.disc(Point.new(rand*width, rand*height), rand*10, 20)
+#        while polys.any?{|q| p.intersects?(q)}
+#          p = Polygon.disc(Point.new(rand*width, rand*height), rand*10, 20)
+#        end
         polys + [p]
       end
 

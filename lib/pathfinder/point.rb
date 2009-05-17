@@ -28,6 +28,10 @@ module Pathfinder
       self.class.new(x + dx, y + dy)
     end
 
+    def +(other)
+      self.class.new(x+other.x, y+other.y)
+    end
+
     # Returns the angle of the line segment to +other+.
     def angle_to(other)
       Math.atan2(other.y - y, other.x - x)
