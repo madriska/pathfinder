@@ -117,11 +117,13 @@ module Pathfinder
     def coalesce_end
       return self unless @steps.size > 2
 
-      # Create a path that bypasses the second-to-last node
-      simple_segment = LineSegment.new(@steps[-3], @steps[-1])
-      if @map.obstacles.none?{|o| o.intersects?(simple_segment)}
-        # Recurse -- see if the simplified path can be further simplified
-        return dup_with_steps(@steps[0..-3] + [@steps[-1]]).coalesce_end
+      end_step = @steps[-1]
+      @steps[0..-3].each_with_index do |start_step, i|
+        # Create a path that bypasses the intermediate node(s)
+        simple_segment = LineSegment.new(start_step, end_step)
+        if @map.obstacles.none?{|o| o.intersects?(simple_segment)}
+          return dup_with_steps(@steps[0..i] + [end_step])
+        end
       end
       self
     end

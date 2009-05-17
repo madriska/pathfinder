@@ -35,7 +35,7 @@ module Pathfinder
     protected
 
     # Returns an array of four LineSegments corresponding to a rectangle 
-    # anchored at +corner+ and with dimensions (width, height).
+    # axis-aligned, anchored at corner, and with dimensions (width, height).
     def self.rectangle(corner, width, height)
       c0 = corner
       c1 = Point.new(corner.x, corner.y + height)
