@@ -3,6 +3,7 @@
 # for details.
 
 require 'memoize'
+require 'enumerator'
 module Pathfinder
   
   class Polygon
@@ -14,7 +15,7 @@ module Pathfinder
       sides = rand(options[:max_sides] - 2) + 3
       center = Point.random(options[:width], options[:height])
 
-      points = 1.upto(sides).map do
+      points = (1..sides).map do
         center.random_divergence(options[:divergence], 
                                  options[:divergence]).
                clamp(options[:width], options[:height])
@@ -31,7 +32,7 @@ module Pathfinder
     end
 
     def segments
-      @vertices.each_cons(2).map{|(a,b)| LineSegment.new(a, b)} +
+      @vertices.enum_for(:each_cons, 2).map{|a,b| LineSegment.new(a, b)} +
         [LineSegment.new(@vertices.last, @vertices.first)]
     end
     memoize :segments
