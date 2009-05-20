@@ -10,7 +10,7 @@ module Pathfinder
     end
 
     def steps
-      vertices
+      vertices.map{|p| Point.new(p.x, p.y)}
     end
 
     
