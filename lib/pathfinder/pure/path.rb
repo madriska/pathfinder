@@ -2,6 +2,7 @@
 # This is copyrighted free software. Please see the LICENSE and COPYING files
 # for details.
 
+require 'pathfinder/memoize'
 require 'priority_set'
 require 'enumerator'
 

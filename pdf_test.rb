@@ -4,19 +4,19 @@
 
 $: << 'lib'
 require 'rubygems'
-require 'pathfinder'
+
+# require 'pathfinder/pure'
+require 'pathfinder/visilibity'
 
 include Pathfinder
 map = Map.generate_random(:num_obstacles => 20, :integral => false)
 
+pdf = map.to_pdf
+
 start = Point.new(rand*100, rand*100)
 finish = Point.new(rand*100, rand*100)
-path = Path.new(start, finish, map)
+path = map.shortest_path(start, finish)
 
-#path = Path.new(Point.new(0,0), Point.new(100,100), map)
-
-pdf = map.to_pdf
-path = path.shortest_path
 path.draw(pdf) if path
 pdf.render_file('out.pdf')
 

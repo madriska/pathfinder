@@ -11,30 +11,6 @@ module Pathfinder
       @width, @height, @obstacles = width, height, obstacles
     end
     
-    def self.generate_random(options={})
-      options = {
-        :width => 100, 
-        :height => 100,
-        :integral => true,
-        :num_obstacles => 1
-      }.merge(options)
-
-      width, height = options[:width], options[:height]
-
-      obstacles = (1..options[:num_obstacles]).inject([]) do |polys, _|
-        p = Polygon.generate_random(:width => width, :height => height)
-        while polys.any?{|q| p.intersects?(q)}
-          p = Polygon.generate_random(:width => width, :height => height)
-        end
-#        p = Polygon.disc(Point.new(rand*width, rand*height), rand*10, 20)
-#        while polys.any?{|q| p.intersects?(q)}
-#          p = Polygon.disc(Point.new(rand*width, rand*height), rand*10, 20)
-#        end
-        polys + [p]
-      end
-
-      new(width, height, obstacles)
-    end
 
     protected
 
