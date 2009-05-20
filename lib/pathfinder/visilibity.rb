@@ -6,6 +6,11 @@ require 'pathfinder/compatibility'
 
 require 'visilibity' # gem install visilibity
 
+module Pathfinder
+  # for epsilon geometry as used in VisiLibity
+  Epsilon = 0.000001
+end
+
 require 'pathfinder/visilibity/point'
 require 'pathfinder/visilibity/line_segment'
 require 'pathfinder/visilibity/polygon'

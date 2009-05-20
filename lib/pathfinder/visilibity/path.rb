@@ -5,7 +5,10 @@
 module Pathfinder
   class Path < VisiLibity::Polyline
 
+    attr_reader :goal # used in pdf.rb
+
     def initialize(start, goal, steps)
+      @goal = goal
       super([start] + steps)
     end
 

@@ -4,6 +4,7 @@
 
 module Pathfinder
   class Map < VisiLibity::Environment
+    InvalidMap = Class.new(StandardError)
     
     attr_reader :width, :height, :obstacles
     def initialize(width, height, obstacles)
@@ -18,9 +19,14 @@ module Pathfinder
       super([boundary] + obstacles)
     end
 
-    def shortest_path(start, finish)
+    def shortest_path(start, finish, epsilon=Epsilon)
+      # Reorder boundary vertices ccw and holes cw
+      enforce_standard_form
+      raise InvalidMap unless valid?(Pathfinder::Epsilon)
+
       polyline = super
       return nil unless polyline
+      # Wrap result in Path
       Path.new(start, finish, polyline.vertices[1..-1])
     end
 

@@ -6,7 +6,7 @@ module Pathfinder
   class LineSegment < VisiLibity::LineSegment
 
     def intersects?(other)
-      VisiLibity.intersect(self, other)
+      VisiLibity.intersect(self, other, Epsilon)
     end
 
     # Return Pathfinder::Point objects, not VisiLibity::Point

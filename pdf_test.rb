@@ -5,8 +5,7 @@
 $: << 'lib'
 require 'rubygems'
 
-#require 'pathfinder/pure'
-require 'pathfinder/visilibity'
+require 'pathfinder'
 
 include Pathfinder
 map = Map.generate_random(:num_obstacles => 20, :integral => false)

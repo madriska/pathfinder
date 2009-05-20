@@ -22,15 +22,24 @@ module Pathfinder
       center = Point.random(options[:width], options[:height])
 
       points = (1..sides).map do
+        # VisiLibity doesn't like the holes intersecting the boundary,
+        # so give some clearance at the edges.
         center.random_divergence(options[:divergence], 
                                  options[:divergence]).
-               clamp(options[:width], options[:height])
+               clamp(options[:width]-2, options[:height]-2) + Point.new(1,1)
       end
       
       # Turn into simple polygon: sort vertices by their angle from centroid
       centroid = Point.new(points.inject(0){|s,p| s + p.x} / points.size,
                            points.inject(0){|s,p| s + p.y} / points.size)
-      new(points.sort_by{|p| centroid.angle_to(p)})
+      poly = new(points.sort_by{|p| -centroid.angle_to(p)})
+
+      # Recurse until simple, if we support simplicity checking
+      if !poly.respond_to?(:simple?) || poly.simple?(Epsilon)
+        poly
+      else
+        generate_random(options)
+      end
     end
 
     def intersects?(x)
