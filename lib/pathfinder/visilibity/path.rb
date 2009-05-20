@@ -5,6 +5,16 @@
 module Pathfinder
   class Path < VisiLibity::Polyline
 
+    def initialize(start, goal, steps)
+      super([start] + steps)
+    end
+
+    def steps
+      vertices
+    end
+
+    
+
   end
 end
 

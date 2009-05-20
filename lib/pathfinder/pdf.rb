@@ -15,7 +15,11 @@ module Pathfinder
 
       Scale = 4.0
       def scale(p)
-        (p.is_a?(Array) ? p : p.to_a).map{|x| x*Scale}
+        xs = case p
+        when Array then p
+        else p.to_a
+        end
+        xs.map{|x| x*Scale}
       end
     end
     
@@ -28,20 +32,20 @@ module Pathfinder
     class Polygon
       def draw(pdf)
         pdf.fill_color = '666666'
-        pdf.fill_polygon *@vertices.map{|v| PDF.scale(v)}
+        pdf.fill_polygon *vertices.map{|v| PDF.scale(v)}
       end
     end
 
     class Map
       def to_pdf
         margin = 0.5 * 72 # 1/2 inch
-        width  = (PDF::Scale * @width) + (2 * margin)
-        height = (PDF::Scale * @height) + (2 * margin)
+        width  = (PDF::Scale * self.width) + (2 * margin)
+        height = (PDF::Scale * self.height) + (2 * margin)
 
         Prawn::Document.new(:page_size => [width, height],
                             :margin    => margin) do |pdf|
-          pdf.stroke_rectangle(PDF.scale([0, @height]), 
-                               @width*PDF::Scale, @height*PDF::Scale)
+          pdf.stroke_rectangle(PDF.scale([0, self.height]), 
+                               self.width*PDF::Scale, self.height*PDF::Scale)
           @obstacles.each do |obstacle|
             obstacle.draw(pdf)
           end
@@ -59,14 +63,6 @@ module Pathfinder
         end
         pdf.stroke_color = '999999'
         pdf.stroke_line(PDF.scale(endpoint), PDF.scale(goal))
-        
-        # next obstacle and its intersection
-        if(o = next_obstacle)
-          pdf.fill_color = '000000'
-          pdf.fill_circle_at(PDF.scale(o.intersection_pt(
-                                LineSegment.new(endpoint, goal))),
-                             :radius => 3)
-        end
       end
 
       def draw_event_angles(pdf)
