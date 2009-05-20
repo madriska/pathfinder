@@ -12,8 +12,14 @@ map = Map.generate_random(:num_obstacles => 20, :integral => false)
 
 pdf = map.to_pdf
 
-start = Point.new(rand*100, rand*100)
-finish = Point.new(rand*100, rand*100)
+if defined?(VisiLibity)
+  start = Point.new(rand*100, rand*100) until start && start.in(map)
+  finish = Point.new(rand*100, rand*100) until finish && finish.in(map)
+else
+  start = Point.new(rand*100, rand*100)
+  finish = Point.new(rand*100, rand*100)
+end
+
 path = map.shortest_path(start, finish)
 
 path.draw(pdf) if path
