@@ -2,7 +2,7 @@
 # This is copyrighted free software. Please see the LICENSE and COPYING files
 # for details.
 
-require 'memoize'
+require 'pathfinder/memoize'
 require 'enumerator'
 module Pathfinder
   
