@@ -2,11 +2,9 @@
 # This is copyrighted free software. Please see the LICENSE and COPYING files
 # for details.
 
-require 'pathfinder/compatibility'
-
-require 'pathfinder/point'
-require 'pathfinder/line_segment'
-require 'pathfinder/polygon'
-require 'pathfinder/map'
-require 'pathfinder/path'
-require 'pathfinder/pdf'
+begin
+  require 'pathfinder/visilibity'
+rescue LoadError
+  puts "VisiLibity not found. Using pure Ruby implementation; gem install visilibity for the native implementation."
+  require 'pathfinder/pure'
+end
