@@ -9,6 +9,17 @@ module Pathfinder
       VisiLibity.intersect(self, other)
     end
 
+    # Return Pathfinder::Point objects, not VisiLibity::Point
+    def first
+      p = super
+      Point.new(p.x, p.y)
+    end
+
+    def second
+      p = super
+      Point.new(p.x, p.y)
+    end
+
   end
 end
 

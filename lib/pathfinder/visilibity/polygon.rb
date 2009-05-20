@@ -8,6 +8,10 @@ require 'enumerator'
 module Pathfinder
   class Polygon < VisiLibity::Polygon
 
+    # Return Pathfinder::Point objects, not VisiLibity::Point
+    def vertices
+      super.map{|v| Point.new(v.x, v.y) }
+    end
 
   end
 end
