@@ -23,7 +23,21 @@ module Pathfinder
 
       # TODO: prune search tree. Right now we're checking lots of paths that
       # aren't going to pan out.
+      
+      i = 0
+      `mkdir -p out`
+      `rm -rf out/*.pdf`
+
       while path = paths.pop
+        # Save our progress
+        pdf = to_pdf
+        if best
+          best.draw(pdf, '66ff66')
+        end
+        path.draw(pdf) if path
+        pdf.render_file("out/%04d.pdf" % i)
+        i += 1
+
         # print "#{paths.size} path#{"s" unless paths.size == 1} left#{' '*80}\r"
         seen[path.steps] = true
         if path.complete? && (best.nil? || (path.cost < best.cost))
@@ -38,6 +52,13 @@ module Pathfinder
         end
 
       end
+
+      if best # End on a good note
+        pdf = to_pdf
+        best.draw(pdf)
+        pdf.render_file("out/%04d.pdf" % i)
+      end
+
       best
     end
 

@@ -56,8 +56,8 @@ module Pathfinder
     class Path
 
       # Draw self onto +pdf+.
-      def draw(pdf)
-        pdf.stroke_color = '00ff00'
+      def draw(pdf, stroke_color = '00ff00')
+        pdf.stroke_color = stroke_color
         each_segment do |first, second|
           pdf.stroke_line(PDF.scale(first), PDF.scale(second))
         end
